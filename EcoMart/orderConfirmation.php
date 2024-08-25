@@ -13,12 +13,16 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'customer') {
     header('Location: index.php');
     exit();
 }
+
+if(isset($_SESSION['order_id'])){
 $order_id = $_SESSION['order_id'] ;
 
 $order_items = get_order_items($order_id);
-$payment_details = get_payment_details($order_id);
-$shipping_details = get_shipping_details($order_id);
-$order_details = get_order_details_by_id($order_id);
+    $payment_details = get_payment_details($order_id);
+    $shipping_details = get_shipping_details($order_id);
+    $order_details = get_order_details_by_id($order_id);
+
+
 ?>
 
 <?php
@@ -85,4 +89,9 @@ include_once 'templates/navbar.php';
 include_once 'templates/footer.php';
 ?>
 
-
+<?php
+}
+else{
+    header('Location: Home.php');
+}
+    ?>
