@@ -2,11 +2,13 @@
 session_start();
 $title = 'Home';
 include_once 'guard/check_user_login.php';
-include_once 'models/ProductsModel.php';
+require_once 'classes/Product.php';
 
 check_login();
 
-$products = get_products();
+$product = new Product();
+$products = $product->getAllProducts();
+//$products = get_products();
 
     // Check if the user is logged in and if they are an admin
     if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'customer') {
@@ -27,7 +29,7 @@ $products = get_products();
         <?php if(isset($products) && sizeof($products) > 0) { ?>
 
             <?php
-            $products = get_products();
+            $products = $product->getAllProducts();
             echo '<div class="row gy-4">';
             foreach ($products as $product) {
                 echo '<div class="col-md-4 d-flex align-items-stretch productItem">';

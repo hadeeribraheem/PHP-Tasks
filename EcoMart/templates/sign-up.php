@@ -1,5 +1,6 @@
 <?php
-include_once 'models/UsersModel.php';
+require_once 'classes/User.php';
+$User = new User();
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     $username = $_POST['username'];
     $email = $_POST['email'];
@@ -28,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
         $email_error = "This is an invalid email.";
     } else {
         // Check if the email already exists in the database
-        $check_mail = checkEmail($email);
+        $check_mail = $User->checkEmail($email);
+        //$check_mail = checkEmail($email);
         if ($check_mail) {
             $email_error = "Email already exists.";
         }
@@ -37,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
 
     // If there are no erors, proceed with inserting the data
     if (empty($username_error) && empty($email_error) && empty($pass_error)&& empty($phone_error)) {
-        register_user($username,$email,$password,$phone_number);
+        $User->registerUser($username,$email,$password,$phone_number);
+        //register_user($username,$email,$password,$phone_number);
             header('Location: index.php');
             exit();
 

@@ -1,10 +1,9 @@
 <?php
 session_start();
 $title = 'Admin Dashboard';
+include_once 'classes/User.php';
+include_once 'classes/Order.php';
 include_once 'guard/check_user_login.php';
-include_once 'models/UsersModel.php';
-include_once 'models/OrdersModel.php';
-
 check_login();
 
 // Check if the user is logged in and if they are an admin
@@ -12,9 +11,15 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
     header('Location: index.php');
     exit();
 }
+
+//Objects
+$User = new User();
+$Order = new Order();
+
 // Fetch all users if no filter is applied
-$data = get_users();
-$employee_access = ['username','email','phone_number','Orders','Value'];
+$data = $User->getUsers();
+//$data = get_users();
+$employee_access = ['username','email','phone_number','Order','Value'];
 
 ?>
 <?php include_once 'templates/adminnavbar.php'; ?>
@@ -43,11 +48,13 @@ $employee_access = ['username','email','phone_number','Orders','Value'];
                         echo '<tr>';
                         foreach ($employee_access as $access) {
 
-                            if ($access == 'Orders') {
-                                $Number = count_user_orders($user['user_id']);
-                                echo '<td>' . $Number[0] . '</td>';
+                            if ($access == 'Order') {
+                                $Number = $Order->countUserOrders($user['user_id']);
+                                //$Number = count_user_orders($user['user_id']);
+                                echo '<td>' . $Number . '</td>';
                             } elseif ($access == 'Value') {
-                                $total_spent = get_total_spent_by_user($user['user_id']);
+                                $total_spent = $Order->getTotalSpentByUser($user['user_id']);
+                                //$total_spent = get_total_spent_by_user($user['user_id']);
                                 if ($total_spent == 0) {
                                     echo '<td>0</td>';
                                 } else {

@@ -2,9 +2,11 @@
 session_start();
 $title = 'Admin Dashboard';
 include_once 'guard/check_user_login.php';
-include_once 'models/UsersModel.php';
-include_once 'models/ProductsModel.php';
-include_once 'models/OrdersModel.php';
+
+require_once 'classes/Order.php';
+require_once 'classes/Product.php';
+require_once 'classes/User.php';
+
 check_login();
 
 // Check if the user is logged in and if they are an admin
@@ -13,15 +15,22 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
     exit();
 }
 
+//objects
+$Product = new Product();
+$Users = new User();
+$Order = new Order();
 
 // Determine sorting order from form submission
 $sort_order = isset($_POST['sort']) && $_POST['sort'] == 'DESC' ? 'DESC' : 'ASC';
 
-$Products = getProductsBy($sort_order);
+$Products = $Product->getProductsBy($sort_order);
+//$Products = getProductsBy($sort_order);
 
-$NumOFcustomers = count_customers_with_orders();
+$NumOFcustomers = $Users->countCustomersWithOrders();
+//$NumOFcustomers = count_customers_with_orders();
 
-$total_sum = get_total_amount_sum();
+$total_sum = $Order->getTotalAmountSum();
+//$total_sum = get_total_amount_sum();
 
 // Determine the new sort order for the next button click
 $new_sort_order = $sort_order == 'ASC' ? 'DESC' : 'ASC';

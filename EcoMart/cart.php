@@ -2,8 +2,7 @@
 session_start();
 $title = 'Cart';
 include_once 'guard/check_user_login.php';
-include_once 'models/CartModel.php';
-
+require_once 'classes/Cart.php';
 check_login();
 
 // Check if the user is logged in and if they are an admin
@@ -13,21 +12,27 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'customer') {
     exit();
 }
 
+//objects
+$CartItem = new Cart();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $user_id = $_SESSION['user_id'];
     $product_id = $_POST['product_id'];
     $quantity = $_POST['quantity'];
 
     // Check if the item is already in the cart
-    $cart_item = get_cart_item($user_id, $product_id);
+    $cart_item = $CartItem->getCartItem($user_id, $product_id);
+    //$cart_item = get_cart_item($user_id, $product_id);
 
     if ($cart_item) {
         // If the item is already in the cart, update the quantity
         $new_quantity = $cart_item['quantity'] + $quantity;
-        update_cart_item($cart_item['cart_id'], $new_quantity);
+        $CartItem->updateCartItem($cart_item['cart_id'], $new_quantity);
+        //update_cart_item($cart_item['cart_id'], $new_quantity);
     } else {
         // If the item is not in the cart, add it
-        add_to_cart($user_id, $product_id, $quantity);
+        $CartItem->addToCart($user_id, $product_id, $quantity);
+        //add_to_cart($user_id, $product_id, $quantity);
     }
 
     // Redirect back to the products page
@@ -40,7 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 $user_id = $_SESSION['user_id'];
 
 // Fetch cart items for this user
-$cart_items = get_cart_items($user_id);  // Function to get the cart items for the user
+$cart_items = $CartItem->getCartItems($user_id);
+//$cart_items = get_cart_items($user_id);  // Function to get the cart items for the user
 $total = 0; // Initialize the total amount
 
 // Handle delete action
@@ -48,7 +54,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete') {
     $cart_id = $_GET['cart_id'];
 
     // Call function to delete the item from the cart
-    delete_cart_item($cart_id);
+    $CartItem->deleteCartItem($cart_id);
+    //delete_cart_item($cart_id);
 
     // Redirect back to the cart page
     header('Location: cart.php');

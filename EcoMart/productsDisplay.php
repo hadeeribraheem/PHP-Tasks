@@ -2,8 +2,8 @@
 session_start();
 $title = 'Admin Dashboard';
 include_once 'guard/check_user_login.php';
-include_once 'models/UsersModel.php';
-include("models/ProductsModel.php");
+require_once 'classes/User.php';
+require_once 'classes/Product.php';
 
 check_login();
 
@@ -12,7 +12,13 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
     header('Location: index.php');
     exit();
 }
-$categories  = getCategories();
+
+//objects declaration
+$Product = new Product();
+$User = new User();
+
+$categories  = $Product->getCategories();
+    //getCategories();
 
 ?>
 <?php include_once 'templates/adminnavbar.php'; ?>

@@ -1,56 +1,82 @@
 <?php
 session_start();
-include_once 'models/OrdersModel.php';  // Include your model files
-include_once 'models/PaymentsModel.php';
-include_once 'models/ShippingModel.php';
-include_once  'models/CartModel.php';
-include_once  'models/OrderItemsModel.php';
+
+include_once 'guard/check_user_login.php';
+check_login();
+
+require_once 'classes/Cart.php';
+require_once 'classes/Order.php';
+require_once 'classes/OrderItem.php';
+require_once 'classes/Product.php';
+require_once 'classes/Shipping.php';
+require_once 'classes/Payment.php';
+
 // Assuming user ID is stored in the session
 $user_id = $_SESSION['user_id'];
 
+//objects to use
+$Order = new Order();
+$OrderItem = new OrderItem();
+$Payment = new Payment();
+$Shipping = new Shipping();
+$Cart = new Cart();
+
+
 // Check if the form was submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get form data
-    $shipping_address = $_POST['shipping_address'];
-
-    $payment_method = $_POST['payment_method'];
-    $shipping_method = $_POST['shipping_method'];
-    // Get the order ID from the session
-    $order_id = $_SESSION['order_id'];
-
-    // Update the orders table with the shipping address
-    update_order_shipping_address($order_id, $shipping_address);
-
-    // Add or update the payment details
-    update_payment_details($order_id, $payment_method);
-
-    // Add or update the shipping details
-    update_shipping_details($order_id, $shipping_method);
 
     // Calculate total amount based on cart items
-    $cart_items = get_cart_items($user_id);  // get the cart items for the user
     $total_amount = 0;
+    $cart_items = $Cart->getCartItems($user_id);
+    //$cart_items = get_cart_items($user_id);  // get the cart items for the user
     foreach ($cart_items as $item) {
         $total_amount += $item['price'] * $item['quantity'];
     }
     $order_date = date('Y-m-d H:i:s'); // Get the current date and time in the format YYYY-MM-DD HH:MM:SS
-    $order_id = create_order($user_id, $total_amount,$order_date, $shipping_address );
+
     // Store order_id in the session
+    $order_id = $Order->createOrder($user_id, $total_amount,$order_date, $_SESSION['shipping_address'] );
     $_SESSION['order_id'] = $order_id;
 
-    // Save order items
-    foreach ($cart_items as $item) {
-        add_order_item($order_id, $item['product_id'], $item['quantity'], $item['price']);
-    }
+    //$order_id = create_order($user_id, $total_amount,$order_date, $shipping_address );
 
-    // Save payment information
-    $payment_id = add_payment($order_id, $payment_method, $total_amount, 'pending'); // pending status initially
+    // Get form data
+    $shipping_address = $_POST['shipping_address'];
+    $shipping_method = $_POST['shipping_method'];
+    $payment_method = $_POST['payment_method'];
+
+    // Update the orders table with the shipping address
+    $Order->updateOrderShippingAddress($order_id, $shipping_address);
+    //update_order_shipping_address($order_id, $shipping_address);
+
 
     // Save shipping information
     $shipping_cost = ($shipping_method == 'express') ? 20.00 : 10.00;  //  shipping costs
-    $shipping_id = add_shipping($order_id, $shipping_method, $shipping_cost, date('Y-m-d H:i:s'), null, null);
+    $current_date = new DateTime();
+    // Add 5 days to the current date
+    $expected_date = $current_date->modify('+5 days');
+    $delivery_date = $expected_date->format('Y-m-d H:i:s');
+    $shipping_id = $Shipping->addShipping($order_id,$shipping_method, $shipping_cost, date('Y-m-d H:i:s'), $delivery_date);
 
-    header('location: orders.php');
+    // Calculate total amount based on cart items
+    $cart_items = $Cart->getCartItems($user_id);
+    $total_amount = 0;
+
+
+    // Save order items
+    foreach ($cart_items as $item) {
+        $OrderItem->addOrderItem($order_id, $item['product_id'], $item['quantity'], $item['price']);
+    }
+
+    // Save payment information
+    $payment_id = $Payment->addPayment($order_id, $_SESSION['payment_method'], $total_amount, 'pending');
+    $Order->updateOrderWithPayment($order_id, $payment_id);
+    //update the payment details
+    $Payment->updatePaymentDetails($order_id, $payment_method);
+
+    $Cart->clearCart($user_id);
+
+    header('location:orders.php');
 }
 ?>
 

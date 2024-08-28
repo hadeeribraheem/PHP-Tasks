@@ -1,8 +1,8 @@
 <?php
 session_start();
 include_once 'guard/check_user_login.php';
-include_once 'models/ProductsModel.php';
-include_once 'models/ProductImagesModel.php';
+require_once 'classes/Product.php';
+require_once 'classes/ProductImage.php';
 
 check_login();
 $product_id = isset($_GET['product_id']) ? $_GET['product_id'] : null;
@@ -20,14 +20,18 @@ if (!$product_id) {
 }
 
 // Fetch product details
-$product = get_product_by_id($product_id);
+$productinfo = new Product();
+$product = $productinfo->getProductById($product_id);
+//$product = get_product_by_id($product_id);
 
 $title = $product['name'];
 
 
 
 // Fetch product images
-$images = get_product_images($product_id);
+$productimgs = new ProductImage();
+$images = $productimgs->getProductImages($product_id);
+//$images = get_product_images($product_id);
 
 if (!$product) {
     echo "<p class='alert alert-danger'>Product not found.</p>";

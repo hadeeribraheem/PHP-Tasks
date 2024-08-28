@@ -1,10 +1,15 @@
 <?php
 session_start();
-$title = 'Admin Dashboard';
+
 include_once 'guard/check_user_login.php';
-include_once 'models/UsersModel.php';
-include_once 'models/ProductsModel.php';
-include_once 'models/OrdersModel.php';
+check_login();
+
+$title = 'Admin Dashboard';
+require_once 'classes/Order.php';
+require_once 'classes/User.php';
+require_once 'classes/Product.php';
+
+include_once 'guard/check_user_login.php';
 check_login();
 
 // Check if the user is logged in and if they are an admin
@@ -17,7 +22,9 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
 // Determine sorting order from form submission
 $sort_order = isset($_POST['sort']) && $_POST['sort'] == 'DESC' ? 'DESC' : 'ASC';
 
-$Orders = getOrdersBy($sort_order);
+$orderinfo = new Order();
+$Orders = $orderinfo->getOrdersBy($sort_order);
+//$Orders = getOrdersBy($sort_order);
 
 // Determine the new sort order for the next button click
 $new_sort_order = $sort_order == 'ASC' ? 'DESC' : 'ASC';
@@ -55,12 +62,16 @@ $employee_access = ['user_id','total_amount','order_date','status','shipping_add
                     foreach($employee_access as $access){
                         if($order[$access] == $order['user_id']){
                             $where = 'WHERE user_id ="'.$order['user_id'].'"';
-                            $user = get_users($where);
+                            $Users = new User();
+                            $user = $Users->getUsers($where);
+                            //$user = get_users($where);
                             echo '<td>'.$user[0]['username'].'</td>';
 
                         }
                         elseif($order[$access] == $order['product_id']){
-                            $product = get_product_by_id($order['product_id']);
+                            $Prouctinfo = new Product();
+                            $product= $Prouctinfo->getProductById($order['product_id']);
+                            //$product = get_product_by_id($order['product_id']);
                             echo '<td>'.$product['name'].'</td>';
                             echo '<td><img src="'.$product['image_url'].'" alt="Product Image" class="img-fluid" style="max-width:100px;max-height:100px;width:auto;height:auto;"></td>';
                         }

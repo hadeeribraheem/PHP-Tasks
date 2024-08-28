@@ -1,15 +1,19 @@
 <?php
     session_start();
     $title = 'Login';
-    include_once 'models/UsersModel.php';
+    require_once 'classes/User.php';
 
     $email_error = '';
     $password_error = '';
 
     if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])){
+
+        $User = new User();
         // Check if the email exists
-        $user = get_user_by_email($_POST['email']);
-        $password = get_specific_user($_POST['email'],$_POST['password']);
+        $user = $User->getUserByEmail($_POST['email']);
+        //$user = get_user_by_email($_POST['email']);
+        $password = $User->getSpecificUser($_POST['email'],$_POST['password']);
+        //$password = get_specific_user($_POST['email'],$_POST['password']);
 
         if($user){
             // Email exists, now check the password
